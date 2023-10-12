@@ -1,0 +1,5 @@
+# Below is pseudo API Gateway endpoint, please replace it with your own.
+curl -s \
+--request POST 'https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/users' \
+--header 'Content-Type: application/json' \
+--data-raw '{"name": "George", "userId": "123abc"}'

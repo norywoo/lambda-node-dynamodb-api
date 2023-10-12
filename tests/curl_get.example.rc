@@ -1,0 +1,2 @@
+# Below is pseudo API Gateway endpoint, please replace it with your own.
+curl -s https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/users/123abc
