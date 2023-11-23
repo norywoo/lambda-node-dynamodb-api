@@ -7,61 +7,65 @@ const {
 const express = require("express");
 const serverless = require("serverless-http");
 
-
 const app = express();
 
-const USERS_TABLE = process.env.USERS_TABLE;
+const SUDOKU_TABLE = process.env.SUDOKU_TABLE;
 const client = new DynamoDBClient();
 const dynamoDbClient = DynamoDBDocumentClient.from(client);
 
 app.use(express.json());
 
-app.get("/users/:userId", async function (req, res) {
+app.get("/prob/easy", async function (req, res) {
+  const pids = [
+    "e0474", "e0483", "e0493", "e0499",
+    "e0507", "e0509", "e0511", "e0517",
+    "e0518", "e0519", "e0520", "e0521",
+    "e0522", "e0523", "e0524", "e0539"
+  ];
+  const pid = pids[Math.floor(Math.random() * pids.length)];
   const params = {
-    TableName: USERS_TABLE,
+    TableName: SUDOKU_TABLE,
     Key: {
-      userId: req.params.userId,
+      probId: pid,
+    },
+  };
+  try {
+    const { Item } = await dynamoDbClient.send(new GetCommand(params));
+    if (Item) {
+      const { probId, prob } = Item;
+      res.json({ probId, prob });
+    } else {
+      res
+        .status(404)
+        .json({ error: 'Could not find problem with provided "probId"' });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Could not retreive prob" });
+  }
+});
+
+app.get("/prob/:probId", async function (req, res) {
+  const params = {
+    TableName: SUDOKU_TABLE,
+    Key: {
+      probId: req.params.probId,
     },
   };
 
   try {
     const { Item } = await dynamoDbClient.send(new GetCommand(params));
     if (Item) {
-      const { userId, name } = Item;
-      res.json({ userId, name });
+      const { probId, prob } = Item;
+      res.json({ probId, prob });
     } else {
       res
         .status(404)
-        .json({ error: 'Could not find user with provided "userId"' });
+        .json({ error: 'Could not find problem with provided "probId"' });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Could not retreive user" });
-  }
-});
-
-app.post("/users", async function (req, res) {
-  const { userId, name } = req.body;
-  if (typeof userId !== "string") {
-    res.status(400).json({ error: '"userId" must be a string' });
-  } else if (typeof name !== "string") {
-    res.status(400).json({ error: '"name" must be a string' });
-  }
-
-  const params = {
-    TableName: USERS_TABLE,
-    Item: {
-      userId: userId,
-      name: name,
-    },
-  };
-
-  try {
-    await dynamoDbClient.send(new PutCommand(params));
-    res.json({ userId, name });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Could not create user" });
+    res.status(500).json({ error: "Could not retreive prob" });
   }
 });
 
@@ -70,6 +74,5 @@ app.use((req, res, next) => {
     error: "Not Found",
   });
 });
-
 
 module.exports.handler = serverless(app);

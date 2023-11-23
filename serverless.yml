@@ -1,10 +1,10 @@
 org: norywoo
-app: aws-node-express-dynamodb-api
-service: aws-node-express-dynamodb-api
+app: aws-node-dynamodb-sudoku-api
+service: aws-node-dynamodb-sudoku-api
 frameworkVersion: '3'
 
 custom:
-  tableName: 'users-table-${sls:stage}'
+  tableName: 'sudoku-table-${sls:stage}'
 
 provider:
   name: aws
@@ -21,9 +21,9 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource:
-            - Fn::GetAtt: [ UsersTable, Arn ]
+            - Fn::GetAtt: [ SudokuTable, Arn ]
   environment:
-    USERS_TABLE: ${self:custom.tableName}
+    SUDOKU_TABLE: ${self:custom.tableName}
 
 functions:
   api:
@@ -33,14 +33,14 @@ functions:
 
 resources:
   Resources:
-    UsersTable:
+    SudokuTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: userId
+          - AttributeName: probId
             AttributeType: S
         KeySchema:
-          - AttributeName: userId
+          - AttributeName: probId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.tableName}
